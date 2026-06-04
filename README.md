@@ -47,6 +47,18 @@
 |---|---------|-------|---|
 | 13 | [Platform Automation Scripts](./13-python-platform-automation) | Python · boto3 · kubernetes-client · GitHub Actions | Cron jobs → AWS + K8s APIs → Slack alerts |
 
+### LLMOps
+
+| # | Project | Stack | Architecture |
+|---|---------|-------|---|
+| 14 | [LLM Inference Gateway & Serving Platform](./14-llm-inference-gateway) | FastAPI · vLLM · Kubernetes · Redis · Prometheus · Grafana · AWS EKS · Terraform | JWT auth → Redis rate limiter → model router → vLLM pods → HPA on queue depth |
+
+### MLOps
+
+| # | Project | Stack | Architecture |
+|---|---------|-------|---|
+| 15 | [End-to-End MLOps Pipeline on AWS](./15-mlops-pipeline-aws) | MLflow · Kubeflow Pipelines · ArgoCD · Argo Rollouts · Terraform · AWS S3 · RDS · EKS · Evidently AI | S3 data → KFP train → MLflow registry → GitOps promotion → EKS canary → drift-triggered retraining |
+
 ---
 
 ## Skills Demonstrated

@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: drift-detector
+  namespace: mlops
+spec:
+  schedule: "0 */6 * * *"   # every 6 hours
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: mlops-sa
+          containers:
+            - name: detector
+              image: <your-ecr-account>.dkr.ecr.us-east-1.amazonaws.com/drift-detector:latest
+              command: ["python", "detector.py"]
+              env:
+                - name: S3_BUCKET
+                  valueFrom:
+                    configMapKeyRef:
+                      name: mlops-config
+                      key: s3_bucket
+                - name: PUSHGATEWAY_URL
+                  value: "http://prometheus-pushgateway.monitoring:9091"
+                - name: KFP_ENDPOINT
+                  value: "http://ml-pipeline.kubeflow:8888"
+                - name: KFP_PIPELINE_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: mlops-config
+                      key: kfp_pipeline_id
+                - name: DRIFT_THRESHOLD
+                  value: "0.20"
+                - name: MODEL_NAME
+                  value: "fraud-detector"
+              resources:
+                requests:
+                  cpu: "250m"
+                  memory: "512Mi"
+                limits:
+                  cpu: "1"
+                  memory: "1Gi"

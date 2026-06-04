@@ -1,0 +1,48 @@
+groups:
+  - name: llm-gateway-alerts
+    interval: 30s
+    rules:
+      # Gateway: high p95 latency
+      - alert: LLMGatewayHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(gateway_request_duration_seconds_bucket[5m])
+          ) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LLM gateway p95 latency > 10s"
+          description: "Model {{ $labels.model }} p95 latency is {{ $value | humanizeDuration }}"
+
+      # vLLM: queue depth building up
+      - alert: VLLMQueueDepthHigh
+        expr: avg by (pod) (vllm_queue_depth) > 20
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "vLLM queue depth critical"
+          description: "Pod {{ $labels.pod }} has {{ $value }} pending requests"
+
+      # Rate limiter: sustained abuse
+      - alert: RateLimitAbuse
+        expr: rate(gateway_rate_limit_hits_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of throttled requests"
+          description: "Tier {{ $labels.tier }} hitting rate limits at {{ $value }}/s"
+
+      # Gateway: high error rate
+      - alert: GatewayHighErrorRate
+        expr: |
+          rate(gateway_requests_total{status=~"5.."}[5m])
+          /
+          rate(gateway_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "LLM gateway error rate > 5%"
